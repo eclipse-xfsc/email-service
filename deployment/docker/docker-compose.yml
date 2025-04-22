@@ -1,0 +1,44 @@
+version: "3.8"
+
+networks:
+  nats:
+    driver: bridge
+
+services:
+  server:
+    container_name: email-service
+    build:
+      context: ../../.
+      dockerfile: ./deployment/docker/Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ".:/app"
+    depends_on:
+      #      - db
+      - nats
+    #    links:
+    #      - "db:database"
+    networks:
+      - nats
+    env_file:
+      - ../../.env
+      - ../../.env.credentials
+
+  nats:
+    image: nats:latest
+    #    container_name: nats_container
+    restart: always
+    ports:
+      - '4222:4222' # NATS server port
+      - '8222:8222' # NATS server monitoring port
+    networks:
+      - nats
+
+#  mail:
+#    image: bytemark/smtp
+#    restart: always
+#    ports:
+#      - '25:25' # SMTP default port
+#    networks:
+#      - nats

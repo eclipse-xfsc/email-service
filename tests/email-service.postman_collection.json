@@ -1,0 +1,86 @@
+{
+	"info": {
+		"_postman_id": "48fd79fc-c6f6-4939-9fe8-7cd3cba2451a",
+		"name": "XFSC",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "sendEmailNew",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"this is a test\",\n    \"from-name\": \"test sender\",\n    \"from-email\": \"test@test.com\",\n    \"to-name\": \"test receiver\",\n    \"to-email\": \"test@test.com\",\n    \"body\": \"this is a test email\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/email/new",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"email",
+						"new"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "sendEmailNew with Attachment",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"subject\": \"this is a test\",\n    \"from-name\": \"test sender\",\n    \"from-email\": \"test@test.com\",\n    \"to-name\": \"test receiver\",\n    \"to-email\": \"test@test.com\",\n    \"body\": \"this is a test email\",\n    \"attachment-name\": \"attachment.png\",\n    \"attachment-base64\": \"Zm9v\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/email/new",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"email",
+						"new"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "health",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/health",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"health"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
