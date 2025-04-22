@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ template "app.name" . }}"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "app.labels" . | nindent 8 }}
+      annotations:
+{{- if .Values.podAnnotations }}
+{{ toYaml .Values.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      securityContext:
+        {{- include "app.securitycontext" . | nindent 8 }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecrets }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}                      
+        ports:
+        - name: http
+          containerPort: {{ .Values.server.http.port }}
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.server.http.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 2
+          failureThreshold: 2
+          timeoutSeconds: 5
+        args: {{  range .Values.config.arguments }}
+                - {{ . }}
+              {{ end }}
+        env:
+          - name:  "NATS_URL"
+            value:  {{ .Values.config.nats.connection }}
+          - name: "NATS_SUBJECT"
+            value:  {{ .Values.config.email.natssubject }}  
+          - name: "NATS_EMAIL_LISTENER_SUBJECT"
+            value:  {{ .Values.config.email.natsemaillistenersubject }} 
+          - name: "MAIL_SMTP_HOST"
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.config.email.mailsmtphostSecret }}
+                key: {{ .Values.config.email.smtphostKey }}  
+          - name: "MAIL_SMTP_PORT"
+            value:  {{ .Values.config.email.mailsmtpport }}
+          - name: "MAIL_SMTP_USERNAME"
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.config.email.mailsmtpusernameSecret }}
+                key: {{ .Values.config.email.usernameKey }}  
+          - name:  "MAIL_SMTP_PASSWORD"
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.config.email.mailsmtppasswordSecret }}
+                key: {{ .Values.config.email.passwordKey }}  
+          - name:  "PORT"
+            value:  "{{ .Values.server.http.port }}"
