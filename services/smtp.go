@@ -1,14 +1,14 @@
 package services
 
 import (
-	"github.com/eclipse-xfsc/email-service/common"
-	"github.com/eclipse-xfsc/email-service/config"
-	"github.com/eclipse-xfsc/email-service/model"
 	"encoding/base64"
+	"strconv"
+
+	"github.com/eclipse-xfsc/email-service/v2/common"
+	"github.com/eclipse-xfsc/email-service/v2/config"
+	"github.com/eclipse-xfsc/email-service/v2/model"
 	log "github.com/sirupsen/logrus"
 	mail "github.com/xhit/go-simple-mail/v2"
-	"os"
-	"strconv"
 )
 
 func GetSMTP() *SMTP {
@@ -17,14 +17,15 @@ func GetSMTP() *SMTP {
 
 var smtp *SMTP
 
-func init() {
+func CreateSmtp() error {
 	var err error
 	smtp, err = newSMTP()
 	if err != nil {
 		var logger = common.GetLogger()
-		logger.Error(err, "could not initialise SMTP server")
-		os.Exit(1)
+		logger.Logger.Error(err, "could not initialise SMTP server")
+		return err
 	}
+	return nil
 }
 
 type SMTP struct {
@@ -58,6 +59,7 @@ func (s *SMTP) SendEmail(data *model.EmailData) error {
 
 	return err
 }
+
 func newSMTP() (*SMTP, error) {
 	// Apply Configuration Values
 	server := mail.NewSMTPClient()

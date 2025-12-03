@@ -2,17 +2,13 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/cloudevents/sdk-go/v2/event"
-	"github.com/eclipse-xfsc/email-service/api"
-	"github.com/eclipse-xfsc/email-service/common"
-	"github.com/eclipse-xfsc/email-service/config"
-	"github.com/eclipse-xfsc/email-service/env"
-	"github.com/eclipse-xfsc/email-service/handlers"
-	"github.com/eclipse-xfsc/email-service/model"
-	core "github.com/eclipse-xfsc/microservice-core-go/pkg/server"
-	"github.com/gin-gonic/gin"
+	"github.com/eclipse-xfsc/email-service/v2/common"
+	"github.com/eclipse-xfsc/email-service/v2/config"
+	"github.com/eclipse-xfsc/email-service/v2/env"
+	"github.com/eclipse-xfsc/email-service/v2/pkg/messaging"
+	"github.com/eclipse-xfsc/email-service/v2/services"
 )
 
 var logger = common.GetLogger()
@@ -25,30 +21,26 @@ func init() {
 }
 
 func main() {
+	common.InitLogger()
 	envir := env.GetEnv()
-	router := core.New(envir)
-	router.Add(func(group *gin.RouterGroup) {
-		api.EmailRoute(group)
-	})
-	addBrokerSubscription(envir)
-
-	err := router.Run(config.ServerConfiguration.Port)
+	err := services.CreateSmtp()
 	if err != nil {
-		logger.Error(err, "server failed")
-		os.Exit(1)
+		log.Fatal(err)
 	}
+
+	addBrokerSubscription(envir)
 }
 
 func addBrokerSubscription(envir common.Env) {
 	envir.BrokerSubscribe(config.ServerConfiguration.Nats.TopicReceive, func(e event.Event) {
-		var eml model.EmailData
+		var eml messaging.EmailPublication
 		err := e.DataAs(&eml)
 		if err != nil {
-			logger.Error(err, "error during handling cloudevents subscription")
+			logger.Logger.Error(err, "error during handling cloudevents subscription")
 		}
-		err = handlers.SendEmail(&eml)
+		err = services.SendEmail(&eml.Email)
 		if err != nil {
-			logger.Error(err, "error during handling cloudevents subscription")
+			logger.Logger.Error(err, "error during handling cloudevents subscription")
 		}
 	})
 }

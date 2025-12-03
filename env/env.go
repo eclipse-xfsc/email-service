@@ -5,10 +5,10 @@ import (
 
 	"github.com/cloudevents/sdk-go/v2/event"
 	cloudeventprovider "github.com/eclipse-xfsc/cloud-event-provider"
-	"github.com/eclipse-xfsc/email-service/common"
-	"github.com/eclipse-xfsc/email-service/config"
-	"github.com/eclipse-xfsc/email-service/connection"
-	"github.com/eclipse-xfsc/email-service/services"
+	"github.com/eclipse-xfsc/email-service/v2/common"
+	"github.com/eclipse-xfsc/email-service/v2/config"
+	"github.com/eclipse-xfsc/email-service/v2/connection"
+	"github.com/eclipse-xfsc/email-service/v2/services"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
@@ -40,14 +40,14 @@ func (env *EnvObj) BrokerSubscribe(topic string, handler func(e event.Event)) {
 	if config.ServerConfiguration.Nats.Url != "" {
 		broker, err := connection.CloudEventsConnection(topic, cloudeventprovider.ConnectionTypeSub)
 		if err != nil {
-			logger.Error(err, "connection failed", "topic", topic)
+			logger.Logger.Error(err, "connection failed", "topic", topic)
 			return
 		}
 		env.brokers[topic] = broker
 		go func() {
 			er := broker.SubCtx(context.Background(), handler)
 			if er != nil {
-				logger.Error(er, "subscription failed", "topic", topic)
+				logger.Logger.Error(er, "subscription failed", "topic", topic)
 			}
 		}()
 	}

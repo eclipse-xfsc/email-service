@@ -1,10 +1,11 @@
 package connection
 
 import (
-	"github.com/eclipse-xfsc/email-service/common"
-	"github.com/eclipse-xfsc/email-service/config"
 	"fmt"
-	"github.com/eclipse-xfsc/cloud-event-provider"
+
+	cloudeventprovider "github.com/eclipse-xfsc/cloud-event-provider"
+	"github.com/eclipse-xfsc/email-service/v2/common"
+	"github.com/eclipse-xfsc/email-service/v2/config"
 )
 
 var logger = common.GetLogger()
@@ -19,10 +20,10 @@ func CloudEventsConnection(topic string, typ cloudeventprovider.ConnectionType) 
 	}, typ, topic)
 
 	if err != nil {
-		logger.Error(err, "error during establishing cloudevents connection")
+		logger.Logger.Error(err, "error during establishing cloudevents connection")
 		return nil, err
 	} else {
-		logger.Info(fmt.Sprintf("cloudEvents can be received over topic: %s", topic))
+		logger.Logger.Info(fmt.Sprintf("cloudEvents can be received over topic: %s", topic))
 	}
 	return client, nil
 }
