@@ -3,3 +3,4 @@
 .env.credentials
 .vscode/settings.json
 deployment/helm/charts/library-1.0.0.tgz
+deployment/docker/log.txt
