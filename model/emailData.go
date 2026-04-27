@@ -9,13 +9,13 @@ import (
 
 type EmailData struct {
 	MailSubject                 string `json:"subject"`
-	FromName                    string `json:"from-name"`
-	FromEmail                   string `json:"from-email"`
-	ToName                      string `json:"to-name"`
-	ToEmail                     string `json:"to-email"`
+	FromName                    string `json:"fromName"`
+	FromEmail                   string `json:"fromEmail"`
+	ToName                      string `json:"toName"`
+	ToEmail                     string `json:"toEmail"`
 	MailBody                    string `json:"body"`
-	EmailAttachmentName         string `json:"attachment-name" default:""`
-	EmailAttachmentBase64String string `json:"attachment-base64" default:""`
+	EmailAttachmentName         string `json:"attachmentName" default:""`
+	EmailAttachmentBase64String string `json:"attachmentBase64" default:""`
 }
 
 func EmailDataFromJSONBytestream(data []byte) (*EmailData, error) {

@@ -84,6 +84,11 @@ func SendEmailNewViaNats(c *gin.Context) error {
 func SendEmail(data *model.EmailData) error {
 
 	logger.Info("preparing email send routine")
+	logger.Info("EMAIL DEBUG",
+		"to", data.ToEmail,
+		"from", data.FromEmail,
+		"subject", data.MailSubject,
+	)
 
 	cfg := config.ServerConfiguration.SMTP
 

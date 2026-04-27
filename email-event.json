@@ -1,0 +1,16 @@
+{
+  "specversion": "1.0",
+  "id": "email-1",
+  "type": "email.sent",
+  "source": "email-cli",
+  "data": {
+    "fromEmail": "tester@local.dev",
+    "fromName": "Tester",
+    "toEmail": "test@this-is-a-test.com",
+    "toName": "Receipient",
+    "mailSubject": "CloudEvent test email",
+    "emailBody": "Hello from CloudEvents + NATS",
+    "emailAttachmentName": "",
+    "emailAttachmentBase64String": ""
+  }
+}
