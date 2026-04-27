@@ -31,7 +31,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	envir := env.GetEnv()
+	envir := env.NewEnv()
 
 	router := core.New(envir)
 
