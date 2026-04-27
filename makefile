@@ -8,8 +8,3 @@ docker-run:
 docker-compose-run:
 	docker compose -f deployment/docker/docker-compose.yml --env-file=.env rm --force --stop
 	docker compose -f deployment/docker/docker-compose.yml --env-file=.env --env-file=.env.credentials up --build --detach
-
-
-
-publish nats test message(Windows PowerShell):
-	Get-Content .\email-event.json -Raw | nats pub email.receive
