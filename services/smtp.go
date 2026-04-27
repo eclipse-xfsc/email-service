@@ -1,14 +1,12 @@
 package services
 
 import (
-	"github.com/eclipse-xfsc/email-service/common"
 	"github.com/eclipse-xfsc/email-service/config"
 	"github.com/eclipse-xfsc/email-service/model"
 	"encoding/base64"
 	log "github.com/sirupsen/logrus"
 	mail "github.com/xhit/go-simple-mail/v2"
-	"os"
-	"strconv"
+	"fmt"
 )
 
 func GetSMTP() *SMTP {
@@ -17,14 +15,13 @@ func GetSMTP() *SMTP {
 
 var smtp *SMTP
 
-func init() {
+func InitSMTP() error {
 	var err error
 	smtp, err = newSMTP()
 	if err != nil {
-		var logger = common.GetLogger()
-		logger.Error(err, "could not initialise SMTP server")
-		os.Exit(1)
+		return err
 	}
+	return nil
 }
 
 type SMTP struct {
@@ -58,13 +55,19 @@ func (s *SMTP) SendEmail(data *model.EmailData) error {
 
 	return err
 }
+
 func newSMTP() (*SMTP, error) {
+	cfg := config.ServerConfiguration.SMTP
+
+	if cfg.Host == "" || cfg.Port == 0 {
+		return nil, fmt.Errorf("invalid SMTP config: host=%q port=%d", cfg.Host, cfg.Port)
+	}
 	// Apply Configuration Values
 	server := mail.NewSMTPClient()
-	server.Host = config.ServerConfiguration.Mail.SmtpHost
-	server.Port, _ = strconv.Atoi(config.ServerConfiguration.Mail.SmtpPort)
-	server.Username = config.ServerConfiguration.Mail.SmtpUsername
-	server.Password = config.ServerConfiguration.Mail.SmtpPassword
+	server.Host = config.ServerConfiguration.SMTP.Host
+	server.Port = config.ServerConfiguration.SMTP.Port
+	server.Username = config.ServerConfiguration.SMTP.Username
+	server.Password = config.ServerConfiguration.SMTP.Password
 	server.Encryption = mail.EncryptionNone // mail.EncryptionTLS
 
 	// Initialize SMTP Client

@@ -5,40 +5,40 @@ networks:
     driver: bridge
 
 services:
-  server:
+  email-service:
     container_name: email-service
     build:
       context: ../../.
       dockerfile: ./deployment/docker/Dockerfile
+
     ports:
       - "8080:8080"
-    volumes:
-      - ".:/app"
+
     depends_on:
-      #      - db
       - nats
-    #    links:
-    #      - "db:database"
+      - mailhog 
+
     networks:
       - nats
+
     env_file:
       - ../../.env
-      - ../../.env.credentials
 
   nats:
     image: nats:latest
-    #    container_name: nats_container
     restart: always
     ports:
-      - '4222:4222' # NATS server port
-      - '8222:8222' # NATS server monitoring port
+      - "4222:4222"
+      - "8222:8222"
     networks:
       - nats
 
-#  mail:
-#    image: bytemark/smtp
-#    restart: always
-#    ports:
-#      - '25:25' # SMTP default port
-#    networks:
-#      - nats
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    restart: always
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+    networks:
+      - nats

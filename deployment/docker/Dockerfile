@@ -10,13 +10,15 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /server
+RUN CGO_ENABLED=0 GOOS=linux go build -o server
 
 # --- runtime stage ---
 FROM alpine:3.20
 
 WORKDIR /app
 
-COPY --from=builder /server /server
+RUN apk add --no-cache ca-certificates
 
-CMD ["/server"]
+COPY --from=builder /app/server /server
+
+ENTRYPOINT ["/server"]

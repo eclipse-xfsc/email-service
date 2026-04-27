@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"fmt"
 
 	cloudeventprovider "github.com/eclipse-xfsc/cloud-event-provider"
 	"github.com/eclipse-xfsc/email-service/common"
@@ -61,7 +62,7 @@ func SendEmailNewViaNats(c *gin.Context) error {
 		return common.EmailError{Msg: "email data invalid", Code: http.StatusBadRequest}
 	}
 
-	e, err := cloudeventprovider.NewEvent(config.ServerConfiguration.Name, EmailSentEventType, data)
+	e, err := cloudeventprovider.NewEvent(config.ServerConfiguration.App.Name, EmailSentEventType, data)
 	if err != nil {
 		logger.Error(err, "")
 		return common.EmailError{Msg: "could not create event with provided email data", Code: http.StatusBadRequest}
@@ -84,39 +85,42 @@ func SendEmail(data *model.EmailData) error {
 
 	logger.Info("preparing email send routine")
 
-	// Check input values and compare with config values (defaults from config if given)
-	emailSubjectDefault := config.ServerConfiguration.Mail.SmtpDefaultSubject
-	if data.FromName == "" && emailSubjectDefault != "" {
-		data.MailSubject = emailSubjectDefault
-	}
-	emailFromEmailaddressDefault := config.ServerConfiguration.Mail.SmtpDefaultSenderEmail
-	if data.FromEmail == "" && emailFromEmailaddressDefault != "" {
-		data.FromEmail = emailFromEmailaddressDefault
-	}
-	emailFromNameDefault := config.ServerConfiguration.Mail.SmtpDefaultSenderName
-	if data.FromName == "" && emailFromNameDefault != "" {
-		data.FromName = emailFromNameDefault
+	cfg := config.ServerConfiguration.SMTP
+
+	// defaults
+	if data.MailSubject == "" {
+		data.MailSubject = cfg.DefaultSubject
 	}
 
-	// check sanity of values and parameters
-	if len(data.MailSubject) < config.ServerConfiguration.Mail.SmtpSubjectLengthMin || len(data.MailSubject) > config.ServerConfiguration.Mail.SmtpSubjectLengthMax {
-		logger.Error(nil, "emailSubject conformity error: "+data.MailSubject)
+	if data.FromEmail == "" {
+		data.FromEmail = cfg.DefaultSenderEmail
 	}
 
-	// check attachment parameters
-	if len(data.EmailAttachmentBase64String) > 0 && len(data.EmailAttachmentName) < config.ServerConfiguration.Mail.SmtpAttachmentNameMin {
-		logger.Error(nil, "emailAttachmentBase64String set, but no emailAttachmentName given")
-		return nil
+	if data.FromName == "" {
+		data.FromName = cfg.DefaultSenderName
 	}
 
-	// check attachment parameters
-	if len(data.EmailAttachmentBase64String) <= 0 && len(data.EmailAttachmentName) > 0 {
-		logger.Error(nil, "emailAttachmentName given, but no emailAttachmentBase64String set")
-		return nil
+	// validation: subject length
+	if len(data.MailSubject) < cfg.SubjectMin ||
+		len(data.MailSubject) > cfg.SubjectMax {
+
+		logger.Error(nil, "invalid subject length: "+data.MailSubject)
+		return fmt.Errorf("invalid subject length")
 	}
 
-	// TODO: implement meaningful checks
+	// attachment validation
+	hasAttachment := len(data.EmailAttachmentBase64String) > 0
+	hasName := len(data.EmailAttachmentName) > 0
+
+	if hasAttachment && !hasName {
+		logger.Error(nil, "attachment provided without name")
+		return fmt.Errorf("invalid attachment")
+	}
+
+	if hasName && !hasAttachment {
+		logger.Error(nil, "attachment name provided without data")
+		return fmt.Errorf("invalid attachment")
+	}
 
 	return services.GetSMTP().SendEmail(data)
-
 }

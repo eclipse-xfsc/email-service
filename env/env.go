@@ -15,7 +15,9 @@ import (
 var logger = common.GetLogger()
 
 func init() {
-	env = &EnvObj{}
+	env = &EnvObj{
+		brokers: make(map[string]*cloudeventprovider.CloudEventProviderClient),
+	}
 }
 
 func GetEnv() *EnvObj {
@@ -37,7 +39,7 @@ func (env *EnvObj) GetBroker(topic string) *cloudeventprovider.CloudEventProvide
 	return env.brokers[topic]
 }
 func (env *EnvObj) BrokerSubscribe(topic string, handler func(e event.Event)) {
-	if config.ServerConfiguration.Nats.Url != "" {
+	if config.ServerConfiguration.Nats.URL != "" {
 		broker, err := connection.CloudEventsConnection(topic, cloudeventprovider.ConnectionTypeSub)
 		if err != nil {
 			logger.Error(err, "connection failed", "topic", topic)

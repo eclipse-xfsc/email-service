@@ -13,33 +13,41 @@ import (
 	"github.com/eclipse-xfsc/email-service/model"
 	core "github.com/eclipse-xfsc/microservice-core-go/pkg/server"
 	"github.com/gin-gonic/gin"
+	logr "github.com/eclipse-xfsc/microservice-core-go/pkg/logr" 
+	services "github.com/eclipse-xfsc/email-service/services"
 )
 
-var logger = common.GetLogger()
-
-func init() {
-	err := config.LoadConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 func main() {
+	if err := config.LoadConfig(); err != nil {
+		log.Fatal(err)
+	}
+
+	logger := common.GetLogger()
+	logger.Info("starting service")
+
+	if err := services.InitSMTP(); err != nil {
+		logger.Error(err, "could not initialise SMTP server")
+		os.Exit(1)
+	}
+
 	envir := env.GetEnv()
+
 	router := core.New(envir)
+
 	router.Add(func(group *gin.RouterGroup) {
 		api.EmailRoute(group)
 	})
-	addBrokerSubscription(envir)
 
-	err := router.Run(config.ServerConfiguration.Port)
-	if err != nil {
+	addBrokerSubscription(envir, logger)
+
+	if err := router.Run(config.ServerConfiguration.App.Port); err != nil {
 		logger.Error(err, "server failed")
 		os.Exit(1)
 	}
 }
 
-func addBrokerSubscription(envir common.Env) {
+func addBrokerSubscription(envir common.Env, logger logr.Logger) {
 	envir.BrokerSubscribe(config.ServerConfiguration.Nats.TopicReceive, func(e event.Event) {
 		var eml model.EmailData
 		err := e.DataAs(&eml)

@@ -9,20 +9,34 @@ import (
 	core "github.com/eclipse-xfsc/microservice-core-go/pkg/logr"
 )
 
-var logger core.Logger
+var (
+	logger core.Logger
+	once   sync.Once
+)
 
-var once sync.Once
-
+// GetLogger returns a singleton logger instance
 func GetLogger() core.Logger {
 	once.Do(initLogger)
 	return logger
 }
 
+// initLogger initializes the logger safely
 func initLogger() {
-	file, err := os.Create("log.txt") //should be replaced by something else
-	l, err := core.New(config.ServerConfiguration.LogLevel, config.ServerConfiguration.IsDev, file)
+	// Ensure config is already loaded before calling this function
+	// (important: config.LoadConfig() must happen in main before GetLogger)
+
+	logLevel := config.ServerConfiguration.LogLevel
+	isDev := config.ServerConfiguration.IsDev
+
+	// IMPORTANT: use stdout for Docker/Kubernetes logging
+	output := os.Stdout
+
+	l, err := core.New(logLevel, isDev, output)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to initialize logger: %v", err)
 	}
+
 	logger = *l
+
+	logger.Info("logger initialized successfully")
 }

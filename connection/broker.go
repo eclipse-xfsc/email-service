@@ -13,7 +13,7 @@ func CloudEventsConnection(topic string, typ cloudeventprovider.ConnectionType) 
 	client, err := cloudeventprovider.New(cloudeventprovider.Config{
 		Protocol: cloudeventprovider.ProtocolTypeNats,
 		Settings: cloudeventprovider.NatsConfig{
-			Url:        config.ServerConfiguration.Nats.Url,
+			Url:        config.ServerConfiguration.Nats.URL,
 			QueueGroup: config.ServerConfiguration.Nats.QueueGroup,
 		},
 	}, typ, topic)
